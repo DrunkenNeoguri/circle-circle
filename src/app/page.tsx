@@ -1,95 +1,134 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import { useEffect, useState } from "react";
+import { css } from "../../styled-system/css";
+
+const baseButton = css({
+  backgroundColor: "skyblue",
+  borderRadius: "50%",
+  height: "3rem",
+  width: "3rem",
+  cursor: "pointer",
+});
+
+const selectButton = css({
+  backgroundColor: "orange",
+  borderRadius: "50%",
+  height: "3rem",
+  width: "3rem",
+  cursor: "pointer",
+});
+
+const errorButton = css({
+  backgroundColor: "red",
+  borderRadius: "50%",
+  height: "3rem",
+  width: "3rem",
+  pointerEvents: "none",
+});
+
+const successButton = css({
+  backgroundColor: "yellowgreen",
+  borderRadius: "50%",
+  height: "3rem",
+  width: "3rem",
+  cursor: "pointer",
+});
 
 export default function Home() {
+  const [answer, setAnswer] = useState<number[]>([]);
+  const [stage, setStage] = useState(4);
+  const [input, setInput] = useState<[number, number] | []>([]);
+  const [result, setResult] = useState("none");
+
+  useEffect(() => {
+    if (result === "success" || answer.length === 0) {
+      console.log("계속 들어오니?");
+      const stageArray: number[] = [];
+      for (let i = 0; i < stage; i++) {
+        const onSetIndex = () => {
+          let index = Math.floor(Math.random() * stage) + 1;
+          if (stageArray.indexOf(index) === -1) {
+            return stageArray.push(index);
+          } else {
+            onSetIndex();
+          }
+        };
+        onSetIndex();
+      }
+      setAnswer(stageArray);
+      if (result === "success") {
+        setTimeout(() => {
+          setInput([]);
+          setResult("none");
+        }, 1500);
+      }
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (answer.length !== 0 && answer.length === input.length) {
+      for (let j = 1; j < stage + 1; j++) {
+        console.log(answer, answer.indexOf(j));
+        console.log(input, input.indexOf(j));
+
+        if (answer.indexOf(j) !== input.indexOf(j)) {
+          return setResult("error");
+        }
+      }
+      console.log(result);
+      if (result === "none") {
+        setResult("success");
+      }
+    }
+  }, [input]);
+
+  useEffect(() => {
+    if (result === "error") {
+      setTimeout(() => {
+        setResult("none");
+        setInput([]);
+      }, 1000);
+    }
+  }, [result]);
+  console.log(answer, input);
+
+  const onSetCount = (count: number) => {
+    if (input.indexOf(count) === -1) {
+      setInput([...input, []]);
+    } else {
+      const deleteCount = input.indexOf(count);
+      const newInput = [...input];
+      newInput.splice(deleteCount, 1);
+      setInput([...newInput]);
+    }
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    <div
+      className={css({
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
+        width: "150px",
+        height: "150px",
+        margin: "auto ",
+      })}
+    >
+      {answer?.map((idx) => (
+        <button
+          className={
+            result === "error"
+              ? errorButton
+              : result === "success"
+              ? successButton
+              : input.indexOf(idx) === -1
+              ? baseButton
+              : selectButton
+          }
+          key={(idx + 1).toString()}
+          onClick={() => onSetCount(idx)}
+        ></button>
+      ))}
+    </div>
+  );
 }
